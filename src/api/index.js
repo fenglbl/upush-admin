@@ -1,0 +1,14 @@
+import axios from 'axios'
+
+const request = axios.create({
+  baseURL: 'http://127.0.0.1:3000',
+  timeout: 10000
+})
+
+export function getDashboard(range = '7d') {
+  return request.get('/admin/dashboard', {
+    params: { range }
+  })
+}
+
+export default request
