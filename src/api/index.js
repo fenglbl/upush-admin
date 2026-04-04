@@ -11,4 +11,14 @@ export function getDashboard(range = '7d') {
   })
 }
 
+export function getPushBatches(params = {}) {
+  return request.get('/admin/push-batches', {
+    params
+  })
+}
+
+export function getPushBatchDetail(id) {
+  return request.get(`/admin/push-batches/${id}`)
+}
+
 export default request

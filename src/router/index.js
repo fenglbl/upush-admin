@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
+import PushRecordsView from '../views/PushRecordsView.vue'
+import PushBatchDetailView from '../views/PushBatchDetailView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 
 const router = createRouter({
@@ -21,10 +23,19 @@ const router = createRouter({
     {
       path: '/push-records',
       name: 'push-records',
-      component: PlaceholderView,
+      component: PushRecordsView,
       meta: {
         title: '推送记录',
-        subtitle: '后续接入完整推送记录页'
+        subtitle: '推送批次列表'
+      }
+    },
+    {
+      path: '/push-records/:id',
+      name: 'push-record-detail',
+      component: PushBatchDetailView,
+      meta: {
+        title: '批次详情',
+        subtitle: '推送批次结果明细'
       }
     },
     {

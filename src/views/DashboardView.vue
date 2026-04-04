@@ -113,7 +113,12 @@
             <el-skeleton v-if="loading && !recentPushes.length" :rows="4" animated />
 
             <div v-else-if="recentPushes.length" class="list-block">
-              <div v-for="(item, index) in recentPushes" :key="`${item.createdAt}-${index}`" class="list-item list-item--push">
+              <div
+                v-for="(item, index) in recentPushes"
+                :key="`${item.createdAt}-${index}`"
+                class="list-item list-item--push list-item--clickable"
+                @click="openBatchDetail(item)"
+              >
                 <div class="list-main">
                   <div class="list-title-row">
                     <div class="list-title">{{ item.title }}</div>
@@ -311,6 +316,11 @@ function resizeChart() {
 
 function goTo(path) {
   router.push(path)
+}
+
+function openBatchDetail(item) {
+  if (!item?.id) return
+  router.push(`/push-records/${item.id}`)
 }
 
 async function fetchDashboardData() {
@@ -609,6 +619,16 @@ onBeforeUnmount(() => {
 
 .list-item--push {
   align-items: center;
+}
+
+.list-item--clickable {
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.list-item--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 .list-item--log {
