@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
 import PushRecordsView from '../views/PushRecordsView.vue'
 import PushBatchDetailView from '../views/PushBatchDetailView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
+import PushCreateView from '../views/PushCreateView.vue'
+import LogsView from '../views/LogsView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -41,19 +42,19 @@ const router = createRouter({
     {
       path: '/push-create',
       name: 'push-create',
-      component: PlaceholderView,
+      component: PushCreateView,
       meta: {
         title: '新建推送',
-        subtitle: '后续接入推送表单页'
+        subtitle: '推送创建与提交'
       }
     },
     {
       path: '/logs',
       name: 'logs',
-      component: PlaceholderView,
+      component: LogsView,
       meta: {
         title: '日志中心',
-        subtitle: '后续接入完整日志页面'
+        subtitle: '日志检索与排障'
       }
     }
   ]

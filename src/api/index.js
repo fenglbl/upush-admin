@@ -21,4 +21,12 @@ export function getPushBatchDetail(id) {
   return request.get(`/admin/push-batches/${id}`)
 }
 
+export function createPushMessage(payload) {
+  return request.post('/pushMessage', payload)
+}
+
+export function getLogs(params = {}) {
+  return request.get('/logs', { params })
+}
+
 export default request

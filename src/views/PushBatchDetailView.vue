@@ -25,6 +25,7 @@
         </div>
         <div class="topbar-actions">
           <el-button @click="goBack">返回列表</el-button>
+          <el-button @click="goLogs">查看相关日志</el-button>
           <el-button :loading="loading" type="primary" @click="fetchDetail">刷新</el-button>
         </div>
       </header>
@@ -41,7 +42,11 @@
 
         <section v-if="detail" class="card base-card">
           <div class="base-grid">
-            <div class="kv-item"><span class="k">批次 ID</span><span class="v">{{ detail.id }}</span></div>
+            <div class="kv-item">
+              <span class="k">批次 ID</span>
+              <span class="v mono">{{ detail.id }}</span>
+              <el-button text type="primary" @click="copyText(detail.id)">复制</el-button>
+            </div>
             <div class="kv-item"><span class="k">状态</span><span class="v"><el-tag :type="statusTagType(detail.status)">{{ statusText(detail.status) }}</el-tag></span></div>
             <div class="kv-item"><span class="k">标题</span><span class="v">{{ detail.title }}</span></div>
             <div class="kv-item"><span class="k">结果码</span><span class="v">{{ detail.resultCode }}</span></div>
@@ -56,21 +61,50 @@
 
         <section class="card results-card">
           <div class="results-head">
-            <h2>设备推送结果（{{ results.length }}）</h2>
+            <h2>设备推送结果（{{ filteredResults.length }} / {{ results.length }}）</h2>
+            <div class="results-actions">
+              <el-switch v-model="onlyFailed" active-text="仅看失败" />
+            </div>
           </div>
 
-          <el-table :data="results" stripe border v-loading="loading" empty-text="暂无结果明细">
-            <el-table-column prop="deviceId" label="设备 ID" min-width="240" />
+          <el-table :data="filteredResults" stripe border v-loading="loading" empty-text="暂无结果明细">
+            <el-table-column prop="deviceId" label="设备 ID" min-width="240">
+              <template #default="{ row }">
+                <div class="mono-row">
+                  <span class="mono">{{ row.deviceId }}</span>
+                  <el-button text type="primary" @click="copyText(row.deviceId)">复制</el-button>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column label="结果" width="100">
               <template #default="{ row }">
                 <el-tag :type="row.ok ? 'success' : 'danger'" effect="light">{{ row.ok ? '成功' : '失败' }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="messageId" label="消息 ID" min-width="220" />
+            <el-table-column prop="messageId" label="消息 ID" min-width="220">
+              <template #default="{ row }">
+                <div class="mono-row">
+                  <span class="mono">{{ row.messageId || '-' }}</span>
+                  <el-button v-if="row.messageId" text type="primary" @click="copyText(row.messageId)">复制</el-button>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column prop="providerCode" label="Provider Code" width="130" />
             <el-table-column prop="providerMsg" label="Provider Msg" min-width="200" />
             <el-table-column prop="error" label="错误信息" min-width="220" />
           </el-table>
+
+          <el-collapse class="provider-collapse">
+            <el-collapse-item v-for="(row, index) in filteredResults" :key="`${row.deviceId}-${index}`" :name="index">
+              <template #title>
+                <span class="collapse-title">
+                  {{ row.deviceId }}
+                  <el-tag size="small" :type="row.ok ? 'success' : 'danger'" effect="light">{{ row.ok ? '成功' : '失败' }}</el-tag>
+                </span>
+              </template>
+              <pre class="json-view">{{ formatJson(row.providerResponse || {}) }}</pre>
+            </el-collapse-item>
+          </el-collapse>
         </section>
       </main>
     </div>
@@ -88,9 +122,14 @@ const router = useRouter()
 const loading = ref(false)
 const errorMessage = ref('')
 const detail = ref(null)
+const onlyFailed = ref(false)
 
 const batchId = computed(() => String(route.params.id || ''))
 const results = computed(() => (Array.isArray(detail.value?.results) ? detail.value.results : []))
+const filteredResults = computed(() => {
+  if (!onlyFailed.value) return results.value
+  return results.value.filter((item) => !item.ok)
+})
 
 function statusTagType(status) {
   if (status === 'success') return 'success'
@@ -107,8 +146,31 @@ function statusText(status) {
   return status || '未知'
 }
 
+function formatJson(value) {
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch (error) {
+    return String(value)
+  }
+}
+
+async function copyText(text) {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(String(text))
+    ElMessage.success('已复制')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
 function goBack() {
   router.push('/push-records')
+}
+
+function goLogs() {
+  const keyword = detail.value?.resultMsg || detail.value?.title || ''
+  router.push({ path: '/logs', query: { keyword } })
 }
 
 async function fetchDetail() {
@@ -266,10 +328,47 @@ fetchDetail()
 
 .results-head {
   margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .results-head h2 {
   margin: 0;
   font-size: 18px;
+}
+
+.provider-collapse {
+  margin-top: 14px;
+}
+
+.collapse-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.json-view {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.mono,
+.mono-row {
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+}
+
+.mono-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 </style>

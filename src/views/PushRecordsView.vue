@@ -31,6 +31,14 @@
       </header>
 
       <main class="content-area">
+        <section class="summary-grid">
+          <div class="summary-card"><span>当前页总数</span><strong>{{ rows.length }}</strong></div>
+          <div class="summary-card summary-card--success"><span>成功</span><strong>{{ summaryCounts.success }}</strong></div>
+          <div class="summary-card summary-card--warning"><span>部分失败</span><strong>{{ summaryCounts.partial }}</strong></div>
+          <div class="summary-card summary-card--danger"><span>失败</span><strong>{{ summaryCounts.failed }}</strong></div>
+          <div class="summary-card"><span>无设备</span><strong>{{ summaryCounts.noDevice }}</strong></div>
+        </section>
+
         <section class="card filters-card">
           <el-form :inline="true" class="filters-form" @submit.prevent>
             <el-form-item label="时间范围">
@@ -118,7 +126,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getPushBatches } from '../api'
@@ -136,6 +144,22 @@ const query = reactive({
   range: '7d',
   status: 'all',
   keyword: ''
+})
+
+const summaryCounts = computed(() => {
+  return rows.value.reduce((acc, item) => {
+    const status = item?.status
+    if (status === 'success') acc.success += 1
+    else if (status === 'partial') acc.partial += 1
+    else if (status === 'failed') acc.failed += 1
+    else if (status === 'no_device') acc.noDevice += 1
+    return acc
+  }, {
+    success: 0,
+    partial: 0,
+    failed: 0,
+    noDevice: 0
+  })
 })
 
 function formatNow() {
@@ -303,6 +327,46 @@ onMounted(() => {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   box-shadow: var(--shadow-card);
+}
+
+.summary-grid {
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-card span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.summary-card strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.summary-card--success {
+  background: #f0fdf4;
+}
+
+.summary-card--warning {
+  background: #fffbeb;
+}
+
+.summary-card--danger {
+  background: #fef2f2;
 }
 
 .filters-card {
