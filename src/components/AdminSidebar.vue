@@ -16,6 +16,8 @@
       <el-menu-item index="/users">用户管理</el-menu-item>
       <el-menu-item index="/devices">设备管理</el-menu-item>
       <el-menu-item index="/feedback">反馈中心</el-menu-item>
+      <el-menu-item index="/agreements">协议管理</el-menu-item>
+      <el-menu-item index="/versions">版本管理</el-menu-item>
       <el-menu-item index="/settings">系统设置</el-menu-item>
     </el-menu>
   </aside>

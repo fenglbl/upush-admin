@@ -65,4 +65,36 @@ export function replyFeedback(id, payload) {
   return request.post(`/admin/feedback/${id}/reply`, payload)
 }
 
+export function getAgreements(params = {}) {
+  return request.get('/admin/agreements', { params })
+}
+
+export function getAgreementDetail(id) {
+  return request.get(`/admin/agreements/${id}`)
+}
+
+export function saveAgreement(payload) {
+  return request.post('/admin/agreements', payload)
+}
+
+export function publishAgreement(id) {
+  return request.post(`/admin/agreements/${id}/publish`)
+}
+
+export function getVersions(params = {}) {
+  return request.get('/admin/versions', { params })
+}
+
+export function getVersionDetail(id) {
+  return request.get(`/admin/versions/${id}`)
+}
+
+export function saveVersion(payload) {
+  return request.post('/admin/versions', payload)
+}
+
+export function publishVersion(id) {
+  return request.post(`/admin/versions/${id}/publish`)
+}
+
 export default request
