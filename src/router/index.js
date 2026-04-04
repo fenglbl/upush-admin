@@ -5,6 +5,7 @@ import PushBatchDetailView from '../views/PushBatchDetailView.vue'
 import PushCreateView from '../views/PushCreateView.vue'
 import LogsView from '../views/LogsView.vue'
 import UsersView from '../views/UsersView.vue'
+import DevicesView from '../views/DevicesView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 
 const router = createRouter({
@@ -71,10 +72,10 @@ const router = createRouter({
     {
       path: '/devices',
       name: 'devices',
-      component: PlaceholderView,
+      component: DevicesView,
       meta: {
         title: '设备管理',
-        subtitle: 'Sprint 2 下一步接设备列表页'
+        subtitle: '设备列表与详情'
       }
     },
     {
