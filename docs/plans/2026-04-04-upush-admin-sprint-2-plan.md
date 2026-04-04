@@ -1,7 +1,7 @@
 # upush-admin Sprint 2 详细计划
 
 日期：2026-04-04  
-状态：Planned  
+状态：Mostly Done  
 关联总纲：`docs/plans/2026-04-04-upush-admin-master-plan.md`
 
 ---
@@ -214,10 +214,78 @@ Sprint 2 建议聚焦：
 
 ---
 
-## 8. Sprint 2 完成定义（DoD）
+## 8. Sprint 2 当前完成情况（截至 2026-04-04 晚）
 
-- 有一个可用的系统设置页第一版
-- 有一个可用的用户管理列表页第一版
-- 有一个可用的设备管理列表页第一版
-- 页面与接口/数据源打通
-- 至少完成一次基础联调与构建验证
+### 已完成
+
+#### S2-1：系统设置数据模型梳理
+已完成第一版落地：
+- 设置分组确定为：`push / logs / ui`
+- 数据源确定为 MongoDB 集合：`admin-settings`
+- 采用单例记录模式：`key=default`
+
+#### S2-2：系统设置页第一版
+已完成：
+- `upush-admin` 新增 `SettingsView`
+- 支持配置回显 / 编辑 / 保存 / 重置
+- 已接入接口：
+  - `GET /admin/settings`
+  - `POST /admin/settings`
+- 当前页面覆盖三组配置：
+  - 推送设置
+  - 日志设置
+  - 界面设置
+
+#### S2-3 / S2-4：用户管理
+已完成第一版：
+- 用户列表
+- 搜索 / 分页
+- 基础详情 drawer
+- 数据源：`uni-id-users`
+- 接口：
+  - `GET /admin/users`
+  - `GET /admin/users/:id`
+
+#### S2-5 / S2-6：设备管理
+已完成第一版：
+- 设备列表
+- 按用户筛选
+- 基础详情 drawer
+- 数据源：`uni-id-device`
+- 接口：
+  - `GET /admin/devices`
+  - `GET /admin/devices/:id`
+
+#### 工程化补充进展
+本 Sprint 期间顺手完成了后台公共布局抽象：
+- `AdminSidebar`
+- `AdminPageLayout`
+- `AdminPageHeader`
+
+### 当前遗留的小尾巴
+- 系统设置页目前还是“第一版可用”，尚未接入更复杂配置项
+- 前端设置值尚未反向驱动 Dashboard / Logs / PushCreate 的默认行为
+- 用户/设备页目前使用 drawer 详情，尚未独立拆出详情页路由
+
+## 9. Sprint 2 完成定义（DoD）对照
+
+- 有一个可用的系统设置页第一版 ✅
+- 有一个可用的用户管理列表页第一版 ✅
+- 有一个可用的设备管理列表页第一版 ✅
+- 页面与接口/数据源打通 ✅
+- 至少完成一次基础联调与构建验证 ✅
+
+结论：**Sprint 2 主体已完成，可进入收尾提交或转入下一 Sprint。**
+
+## 10. 下一步建议
+
+优先顺序建议：
+1. 整理并提交本次 Sprint 2 改动
+2. 决定下一块进入：
+   - 反馈中心
+   - 协议管理
+   - 版本管理
+3. 若继续优化当前成果，可补：
+   - 设置项实际驱动页面默认值
+   - 独立 `UserDetailView` / `DeviceDetailView`
+   - 更细的系统设置字段与分组

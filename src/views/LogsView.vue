@@ -1,38 +1,13 @@
 <template>
-  <div class="logs-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-badge">UP</div>
-        <div>
-          <div class="brand-title">UPUSH</div>
-          <div class="brand-subtitle">Admin</div>
-        </div>
-      </div>
-
-      <el-menu :default-active="'/logs'" class="sidebar-menu" router>
-        <el-menu-item index="/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/push-create">新建推送</el-menu-item>
-        <el-menu-item index="/push-records">推送记录</el-menu-item>
-        <el-menu-item index="/logs">日志中心</el-menu-item>
-        <el-menu-item index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/devices">设备管理</el-menu-item>
-        <el-menu-item index="/settings">系统设置</el-menu-item>
-      </el-menu>
-    </aside>
-
-    <div class="main-panel">
-      <header class="topbar">
-        <div>
-          <h1>日志中心</h1>
-          <p>支持按日期、级别、关键词筛选日志</p>
-        </div>
-        <div class="topbar-actions">
+  <AdminPageLayout>
+    <template #header>
+      <AdminPageHeader title="日志中心" subtitle="支持按日期、级别、关键词筛选日志">
+        <template #actions>
           <span class="refresh-time">最后刷新：{{ lastRefreshText }}</span>
           <el-button :loading="loading" @click="fetchLogs">刷新</el-button>
-        </div>
-      </header>
-
-      <main class="content-area">
+        </template>
+      </AdminPageHeader>
+    </template>
         <section class="card filters-card">
           <el-form :inline="true" @submit.prevent>
             <el-form-item label="日期">
@@ -109,9 +84,7 @@
             <el-table-column prop="raw" label="raw" min-width="420" show-overflow-tooltip />
           </el-table>
         </section>
-      </main>
-    </div>
-  </div>
+  </AdminPageLayout>
 </template>
 
 <script setup>
@@ -119,6 +92,8 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getLogs } from '../api'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminPageLayout from '../components/AdminPageLayout.vue'
 
 const route = useRoute()
 const router = useRouter()

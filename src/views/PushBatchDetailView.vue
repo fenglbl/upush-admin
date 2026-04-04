@@ -1,39 +1,14 @@
 <template>
-  <div class="detail-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-badge">UP</div>
-        <div>
-          <div class="brand-title">UPUSH</div>
-          <div class="brand-subtitle">Admin</div>
-        </div>
-      </div>
-
-      <el-menu :default-active="'/push-records'" class="sidebar-menu" router>
-        <el-menu-item index="/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/push-create">新建推送</el-menu-item>
-        <el-menu-item index="/push-records">推送记录</el-menu-item>
-        <el-menu-item index="/logs">日志中心</el-menu-item>
-        <el-menu-item index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/devices">设备管理</el-menu-item>
-        <el-menu-item index="/settings">系统设置</el-menu-item>
-      </el-menu>
-    </aside>
-
-    <div class="main-panel">
-      <header class="topbar">
-        <div>
-          <h1>批次详情</h1>
-          <p>查看单次推送批次的完整结果明细</p>
-        </div>
-        <div class="topbar-actions">
+  <AdminPageLayout>
+    <template #header>
+      <AdminPageHeader title="批次详情" subtitle="查看单次推送批次的完整结果明细">
+        <template #actions>
           <el-button @click="goBack">返回列表</el-button>
           <el-button @click="goLogs">查看相关日志</el-button>
           <el-button :loading="loading" type="primary" @click="fetchDetail">刷新</el-button>
-        </div>
-      </header>
-
-      <main class="content-area">
+        </template>
+      </AdminPageHeader>
+    </template>
         <el-alert
           v-if="errorMessage"
           type="error"
@@ -116,9 +91,7 @@
             </el-collapse-item>
           </el-collapse>
         </section>
-      </main>
-    </div>
-  </div>
+  </AdminPageLayout>
 </template>
 
 <script setup>
@@ -126,6 +99,8 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getPushBatchDetail } from '../api'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminPageLayout from '../components/AdminPageLayout.vue'
 
 const route = useRoute()
 const router = useRouter()

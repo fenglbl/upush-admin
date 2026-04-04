@@ -45,4 +45,24 @@ export function getDeviceDetail(id) {
   return request.get(`/admin/devices/${id}`)
 }
 
+export function getSettings() {
+  return request.get('/admin/settings')
+}
+
+export function saveSettings(payload) {
+  return request.post('/admin/settings', payload)
+}
+
+export function getFeedbackList(params = {}) {
+  return request.get('/admin/feedback', { params })
+}
+
+export function getFeedbackDetail(id) {
+  return request.get(`/admin/feedback/${id}`)
+}
+
+export function replyFeedback(id, payload) {
+  return request.post(`/admin/feedback/${id}/reply`, payload)
+}
+
 export default request

@@ -6,7 +6,8 @@ import PushCreateView from '../views/PushCreateView.vue'
 import LogsView from '../views/LogsView.vue'
 import UsersView from '../views/UsersView.vue'
 import DevicesView from '../views/DevicesView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
+import FeedbackView from '../views/FeedbackView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -79,12 +80,21 @@ const router = createRouter({
       }
     },
     {
+      path: '/feedback',
+      name: 'feedback',
+      component: FeedbackView,
+      meta: {
+        title: '反馈中心',
+        subtitle: '用户反馈查看与回复'
+      }
+    },
+    {
       path: '/settings',
       name: 'settings',
-      component: PlaceholderView,
+      component: SettingsView,
       meta: {
         title: '系统设置',
-        subtitle: '先保留入口，后续补具体设置项'
+        subtitle: '推送、日志与界面配置'
       }
     }
   ]

@@ -99,15 +99,45 @@
 
 ---
 
-## 7. 当前落地状态（截至 2026-04-04）
+## 7. 当前落地状态（截至 2026-04-04 晚）
 
-已完成（部分）：
+### 7.1 Phase 1（业务闭环）
+已基本完成：
 - Dashboard 首页可用（真实数据来源：`admin-push-batches`）
+- 新建推送页第一版
 - 推送记录页（批次列表）第一版
 - 批次详情页（results 明细）第一版
-- 后端接口：
-  - `GET /admin/dashboard`
-  - `GET /admin/push-batches`
-  - `GET /admin/push-batches/:id`
+- 日志中心第一版
 
-下一步：进入 Sprint 1 详细拆解与执行。
+已落地后端接口：
+- `GET /admin/dashboard`
+- `GET /admin/push-batches`
+- `GET /admin/push-batches/:id`
+- `GET /logs`
+- `POST /pushMessage`
+
+### 7.2 Phase 2（平台治理）
+Sprint 2 主体已基本打通：
+- 用户管理第一版已完成（列表 / 搜索 / 分页 / 详情 drawer）
+- 设备管理第一版已完成（列表 / 按用户筛选 / 详情 drawer）
+- 系统设置第一版已完成（推送 / 日志 / 界面三组配置）
+
+已落地后端接口：
+- `GET /admin/users`
+- `GET /admin/users/:id`
+- `GET /admin/devices`
+- `GET /admin/devices/:id`
+- `GET /admin/settings`
+- `POST /admin/settings`
+
+### 7.3 工程化进展
+虽在总规划中属于后续阶段，但已提前完成一部分公共抽象：
+- `AdminSidebar`
+- `AdminPageLayout`
+- `AdminPageHeader`
+
+### 7.4 下一步建议
+- 先完成 Sprint 2 文档收尾、联调复核与提交
+- 然后在以下方向中二选一继续推进：
+  1. 反馈中心
+  2. 协议管理 / 版本管理

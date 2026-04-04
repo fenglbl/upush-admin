@@ -1,38 +1,13 @@
 <template>
-  <div class="devices-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-badge">UP</div>
-        <div>
-          <div class="brand-title">UPUSH</div>
-          <div class="brand-subtitle">Admin</div>
-        </div>
-      </div>
-
-      <el-menu :default-active="'/devices'" class="sidebar-menu" router>
-        <el-menu-item index="/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/push-create">新建推送</el-menu-item>
-        <el-menu-item index="/push-records">推送记录</el-menu-item>
-        <el-menu-item index="/logs">日志中心</el-menu-item>
-        <el-menu-item index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/devices">设备管理</el-menu-item>
-        <el-menu-item index="/settings">系统设置</el-menu-item>
-      </el-menu>
-    </aside>
-
-    <div class="main-panel">
-      <header class="topbar">
-        <div>
-          <h1>设备管理</h1>
-          <p>基于 `uni-id-device` 的第一版设备列表与详情</p>
-        </div>
-        <div class="topbar-actions">
+  <AdminPageLayout>
+    <template #header>
+      <AdminPageHeader title="设备管理" subtitle="基于 `uni-id-device` 的第一版设备列表与详情">
+        <template #actions>
           <span class="refresh-time">最后刷新：{{ lastRefreshText }}</span>
           <el-button :loading="loading" @click="fetchDevices">刷新</el-button>
-        </div>
-      </header>
-
-      <main class="content-area">
+        </template>
+      </AdminPageHeader>
+    </template>
         <section class="card filters-card">
           <el-form :inline="true" @submit.prevent>
             <el-form-item label="关键词">
@@ -92,9 +67,6 @@
             />
           </div>
         </section>
-      </main>
-    </div>
-
     <el-drawer v-model="detailVisible" title="设备详情" size="560px">
       <el-skeleton :loading="detailLoading" animated>
         <template #default>
@@ -112,13 +84,15 @@
         </template>
       </el-skeleton>
     </el-drawer>
-  </div>
+  </AdminPageLayout>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getDeviceDetail, getDevices } from '../api'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminPageLayout from '../components/AdminPageLayout.vue'
 
 const loading = ref(false)
 const detailLoading = ref(false)

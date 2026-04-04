@@ -1,39 +1,14 @@
 <template>
-  <div class="records-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-badge">UP</div>
-        <div>
-          <div class="brand-title">UPUSH</div>
-          <div class="brand-subtitle">Admin</div>
-        </div>
-      </div>
-
-      <el-menu :default-active="'/push-records'" class="sidebar-menu" router>
-        <el-menu-item index="/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/push-create">新建推送</el-menu-item>
-        <el-menu-item index="/push-records">推送记录</el-menu-item>
-        <el-menu-item index="/logs">日志中心</el-menu-item>
-        <el-menu-item index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/devices">设备管理</el-menu-item>
-        <el-menu-item index="/settings">系统设置</el-menu-item>
-      </el-menu>
-    </aside>
-
-    <div class="main-panel">
-      <header class="topbar">
-        <div>
-          <h1>推送记录</h1>
-          <p>基于 admin-push-batches 的批次数据（真实来源）</p>
-        </div>
-        <div class="topbar-actions">
+  <AdminPageLayout>
+    <template #header>
+      <AdminPageHeader title="推送记录" subtitle="基于 admin-push-batches 的批次数据（真实来源）">
+        <template #actions>
           <el-tag type="info" effect="plain">MongoDB</el-tag>
           <span class="refresh-time">最后刷新：{{ lastRefreshText }}</span>
           <el-button :loading="loading" @click="fetchBatches">刷新</el-button>
-        </div>
-      </header>
-
-      <main class="content-area">
+        </template>
+      </AdminPageHeader>
+    </template>
         <section class="summary-grid">
           <div class="summary-card"><span>当前页总数</span><strong>{{ rows.length }}</strong></div>
           <div class="summary-card summary-card--success"><span>成功</span><strong>{{ summaryCounts.success }}</strong></div>
@@ -123,9 +98,7 @@
             />
           </div>
         </section>
-      </main>
-    </div>
-  </div>
+  </AdminPageLayout>
 </template>
 
 <script setup>
@@ -133,6 +106,8 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getPushBatches } from '../api'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminPageLayout from '../components/AdminPageLayout.vue'
 
 const router = useRouter()
 const loading = ref(false)
