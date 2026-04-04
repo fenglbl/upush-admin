@@ -40,6 +40,17 @@
               <el-input v-model="form.content" type="textarea" :rows="3" maxlength="500" show-word-limit />
             </el-form-item>
 
+            <el-form-item label="payload 模板">
+              <div class="payload-template-row">
+                <el-select v-model="selectedTemplate" style="width: 300px">
+                  <el-option label="默认消息（首页消息列表）" value="default" />
+                  <el-option label="纯文本消息模板" value="simple" />
+                  <el-option label="系统提醒模板" value="system_notice" />
+                </el-select>
+                <el-button @click="applyTemplate">应用模板</el-button>
+              </div>
+            </el-form-item>
+
             <el-form-item label="payload(JSON)">
               <el-input v-model="payloadText" type="textarea" :rows="8" placeholder='{"type":"push_message"}' />
             </el-form-item>
@@ -80,11 +91,32 @@ const form = reactive({
   content: ''
 })
 
-const payloadText = ref(JSON.stringify({
-  type: 'push_message',
-  action: 'open_home_message_list',
-  route: '/pages/home/index'
-}, null, 2))
+const payloadTemplates = {
+  default: {
+    type: 'push_message',
+    action: 'open_home_message_list',
+    route: '/pages/home/index'
+  },
+  simple: {
+    type: 'text',
+    action: 'open_home',
+    route: '/pages/home/index'
+  },
+  system_notice: {
+    type: 'system_notice',
+    action: 'open_home_message_list',
+    route: '/pages/home/index',
+    source: 'admin-system-notice'
+  }
+}
+
+const selectedTemplate = ref('default')
+const payloadText = ref(JSON.stringify(payloadTemplates.default, null, 2))
+
+function applyTemplate() {
+  const template = payloadTemplates[selectedTemplate.value] || payloadTemplates.default
+  payloadText.value = JSON.stringify(template, null, 2)
+}
 
 function fillExample() {
   form.id = '687ba27b7afc5034100a83f0'
@@ -224,6 +256,12 @@ async function submit() {
   box-shadow: var(--shadow-card);
   padding: 18px;
   max-width: 920px;
+}
+
+.payload-template-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .form-actions {

@@ -106,11 +106,12 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getLogs } from '../api'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
 const rows = ref([])
 const errorMessage = ref('')
@@ -121,13 +122,27 @@ function todayDate() {
 }
 
 const query = reactive({
-  date: todayDate(),
-  level: '',
+  date: String(route.query.date || todayDate()),
+  level: String(route.query.level || ''),
   keyword: String(route.query.keyword || ''),
-  message: '',
-  limit: 100,
-  order: 'desc'
+  message: String(route.query.message || ''),
+  limit: Number(route.query.limit || 100) || 100,
+  order: String(route.query.order || 'desc')
 })
+
+function syncRouteQuery() {
+  router.replace({
+    path: '/logs',
+    query: {
+      date: query.date,
+      level: query.level || undefined,
+      keyword: query.keyword || undefined,
+      message: query.message || undefined,
+      limit: String(query.limit || 100),
+      order: query.order || 'desc'
+    }
+  })
+}
 
 function levelTagType(level) {
   if (level === 'ERROR') return 'danger'
@@ -142,6 +157,7 @@ function formatNow() {
 async function fetchLogs() {
   loading.value = true
   errorMessage.value = ''
+  syncRouteQuery()
 
   try {
     const res = await getLogs({ ...query })
