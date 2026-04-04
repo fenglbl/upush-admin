@@ -11,9 +11,12 @@
 
       <el-menu :default-active="route.path" class="sidebar-menu" router>
         <el-menu-item index="/dashboard">Dashboard</el-menu-item>
-        <el-menu-item index="/push-records">推送记录</el-menu-item>
         <el-menu-item index="/push-create">新建推送</el-menu-item>
+        <el-menu-item index="/push-records">推送记录</el-menu-item>
         <el-menu-item index="/logs">日志中心</el-menu-item>
+        <el-menu-item index="/users">用户管理</el-menu-item>
+        <el-menu-item index="/devices">设备管理</el-menu-item>
+        <el-menu-item index="/settings">系统设置</el-menu-item>
       </el-menu>
     </aside>
 
