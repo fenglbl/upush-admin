@@ -95,7 +95,14 @@
                 <el-tag :type="levelTagType(row.level)">{{ row.level || '-' }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="message" label="message" min-width="360" show-overflow-tooltip />
+            <el-table-column label="message" min-width="360">
+              <template #default="{ row }">
+                <div class="message-cell">
+                  <span class="message-text" :title="row.message || '-'">{{ row.message || '-' }}</span>
+                  <el-button v-if="row.message" text type="primary" @click="applyMessageFilter(row.message)">按此筛选</el-button>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column prop="raw" label="raw" min-width="420" show-overflow-tooltip />
           </el-table>
         </section>
@@ -172,6 +179,11 @@ async function fetchLogs() {
   } finally {
     loading.value = false
   }
+}
+
+function applyMessageFilter(messageText) {
+  query.message = String(messageText || '').trim()
+  fetchLogs()
 }
 
 function reset() {
@@ -294,5 +306,20 @@ onMounted(() => {
 
 .table-alert {
   margin-bottom: 14px;
+}
+
+.message-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.message-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

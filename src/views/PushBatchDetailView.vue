@@ -67,6 +67,13 @@
             </div>
           </div>
 
+          <div v-if="failureReasonStats.length" class="failure-reasons">
+            <div v-for="(item, index) in failureReasonStats" :key="`${item.reason}-${index}`" class="reason-chip">
+              <span class="reason-chip__label">{{ item.reason }}</span>
+              <strong class="reason-chip__count">{{ item.count }}</strong>
+            </div>
+          </div>
+
           <el-table :data="filteredResults" stripe border v-loading="loading" empty-text="暂无结果明细">
             <el-table-column prop="deviceId" label="设备 ID" min-width="240">
               <template #default="{ row }">
@@ -129,6 +136,20 @@ const results = computed(() => (Array.isArray(detail.value?.results) ? detail.va
 const filteredResults = computed(() => {
   if (!onlyFailed.value) return results.value
   return results.value.filter((item) => !item.ok)
+})
+
+const failureReasonStats = computed(() => {
+  const failed = results.value.filter((item) => !item.ok)
+  const counter = new Map()
+
+  failed.forEach((item) => {
+    const reason = item.providerMsg || item.error || 'unknown'
+    counter.set(reason, (counter.get(reason) || 0) + 1)
+  })
+
+  return Array.from(counter.entries())
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count)
 })
 
 function statusTagType(status) {
@@ -336,6 +357,36 @@ fetchDetail()
 .results-head h2 {
   margin: 0;
   font-size: 18px;
+}
+
+.failure-reasons {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reason-chip {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  padding: 6px 10px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.reason-chip__label {
+  color: #9a3412;
+  font-size: 12px;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reason-chip__count {
+  color: #7c2d12;
 }
 
 .provider-collapse {
