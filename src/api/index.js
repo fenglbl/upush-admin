@@ -45,7 +45,6 @@ export function getAdminUser() {
 }
 
 const request = axios.create({
-  baseURL: 'http://127.0.0.1:3000',
   timeout: 10000
 })
 
@@ -63,9 +62,11 @@ request.interceptors.response.use(
   (error) => {
     if (error && error.response && error.response.status === 401) {
       clearAdminSession()
-      if (window.location.pathname !== '/login') {
-        const redirect = encodeURIComponent(window.location.pathname + window.location.search)
-        window.location.href = `/login?redirect=${redirect}`
+      const loginPath = `${import.meta.env.BASE_URL}login`
+      const currentPath = `${window.location.pathname}${window.location.search}`
+      if (window.location.pathname !== loginPath) {
+        const redirect = encodeURIComponent(currentPath)
+        window.location.href = `${loginPath}?redirect=${redirect}`
       }
     }
     return Promise.reject(error)

@@ -60,8 +60,9 @@ async function handleSubmit() {
     setLastAdminUsername(form.username)
     setAdminSession(data.data.token, data.data.user)
     ElMessage.success('登录成功')
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
-    router.replace(redirect || '/dashboard')
+    const defaultRedirect = `${import.meta.env.BASE_URL}dashboard`
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : defaultRedirect
+    router.replace(redirect || defaultRedirect)
   } catch (error) {
     ElMessage.error(error?.response?.data?.msg || error.message || '登录失败')
   } finally {
