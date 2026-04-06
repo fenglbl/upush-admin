@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
 import PushRecordsView from '../views/PushRecordsView.vue'
 import PushBatchDetailView from '../views/PushBatchDetailView.vue'
-import PushCreateView from '../views/PushCreateView.vue'
 import LogsView from '../views/LogsView.vue'
 import UsersView from '../views/UsersView.vue'
 import DevicesView from '../views/DevicesView.vue'
@@ -12,6 +11,8 @@ import AgreementEditorView from '../views/AgreementEditorView.vue'
 import VersionsView from '../views/VersionsView.vue'
 import VersionEditorView from '../views/VersionEditorView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import LoginView from '../views/LoginView.vue'
+import { getAdminToken } from '../api'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,15 @@ const router = createRouter({
     {
       path: '/',
       redirect: '/dashboard'
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: {
+        title: '登录',
+        public: true
+      }
     },
     {
       path: '/dashboard',
@@ -45,15 +55,6 @@ const router = createRouter({
       meta: {
         title: '批次详情',
         subtitle: '推送批次结果明细'
-      }
-    },
-    {
-      path: '/push-create',
-      name: 'push-create',
-      component: PushCreateView,
-      meta: {
-        title: '新建推送',
-        subtitle: '推送创建与提交'
       }
     },
     {
@@ -156,6 +157,27 @@ const router = createRouter({
       }
     }
   ]
+})
+
+router.beforeEach((to) => {
+  const hasToken = !!getAdminToken()
+  if (to.meta && to.meta.public) {
+    if (to.path === '/login' && hasToken) {
+      return '/dashboard'
+    }
+    return true
+  }
+
+  if (!hasToken) {
+    return {
+      path: '/login',
+      query: {
+        redirect: to.fullPath
+      }
+    }
+  }
+
+  return true
 })
 
 export default router

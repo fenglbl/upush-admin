@@ -3,148 +3,213 @@
     <template #header>
       <AdminPageHeader :title="pageTitle" :subtitle="pageSubtitle">
         <template #actions>
-          <el-tag type="info" effect="plain">Production</el-tag>
+          <el-tag type="info" effect="plain" class="env-tag admin-ui-header-chip">Production</el-tag>
           <span class="refresh-time">最后刷新：{{ lastRefreshText }}</span>
           <el-button :loading="loading" @click="fetchDashboardData">刷新</el-button>
-          <el-button type="primary" @click="goTo('/push-create')">新建推送</el-button>
         </template>
       </AdminPageHeader>
     </template>
-        <el-alert
-          v-if="errorMessage"
-          class="dashboard-alert"
-          type="error"
-          :closable="false"
-          show-icon
-          :title="errorMessage"
-        />
 
-        <section class="kpi-grid">
-          <div class="kpi-card dashboard-card">
-            <span class="kpi-label">今日推送总数</span>
-            <strong class="kpi-value">{{ summary.total }}</strong>
-          </div>
-          <div class="kpi-card dashboard-card kpi-card--success">
-            <span class="kpi-label">成功数</span>
-            <strong class="kpi-value">{{ summary.success }}</strong>
-          </div>
-          <div class="kpi-card dashboard-card kpi-card--warning">
-            <span class="kpi-label">部分失败数</span>
-            <strong class="kpi-value">{{ summary.partial }}</strong>
-          </div>
-          <div class="kpi-card dashboard-card kpi-card--danger">
-            <span class="kpi-label">失败数</span>
-            <strong class="kpi-value">{{ summary.failed }}</strong>
-          </div>
-          <div class="kpi-card dashboard-card">
-            <span class="kpi-label">成功率</span>
-            <strong class="kpi-value">{{ summary.successRate }}%</strong>
-          </div>
-        </section>
+    <div class="dashboard-page admin-ui-page">
+      <el-alert
+        v-if="errorMessage"
+        class="dashboard-alert"
+        type="error"
+        :closable="false"
+        show-icon
+        :title="errorMessage"
+      />
 
-        <section class="dashboard-card chart-card">
-          <div class="section-head">
+      <section class="dashboard-hero dashboard-card admin-ui-card admin-ui-hero">
+        <div class="dashboard-hero__main">
+          <div class="eyebrow admin-ui-kicker">运营总览</div>
+          <h2>把最近推送状态一眼看清</h2>
+          <p>
+            聚焦最近一段时间的发送表现、异常波动与关键批次，优先帮助你判断系统是否稳定。
+          </p>
+        </div>
+        <div class="dashboard-hero__actions admin-ui-hero__side">
+          <el-segmented v-model="range" :options="rangeOptions" @change="handleRangeChange" />
+          <div class="hero-note admin-ui-hero-side-note">当前维度：{{ rangeLabel }}</div>
+          <div class="hero-status-pills admin-ui-pill-group">
+            <span class="hero-status-pill admin-ui-pill">
+              <span class="hero-status-pill__dot hero-status-pill__dot--success admin-ui-pill__dot admin-ui-pill__dot--success"></span>
+              服务端在线
+            </span>
+            <span class="hero-status-pill admin-ui-pill">
+              <span class="hero-status-pill__dot hero-status-pill__dot--primary admin-ui-pill__dot admin-ui-pill__dot--primary"></span>
+              数据实时刷新
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="insight-strip admin-ui-insight-strip">
+        <div class="insight-strip__item admin-ui-insight-strip__item">
+          <span class="insight-strip__label admin-ui-insight-strip__label">当前结论</span>
+          <strong>{{ statusSummaryHeadline }}</strong>
+        </div>
+        <div class="insight-strip__item admin-ui-insight-strip__item">
+          <span class="insight-strip__label admin-ui-insight-strip__label">高频异常</span>
+          <strong>{{ topErrorReasons[0] || '暂无明显高频异常' }}</strong>
+        </div>
+        <div class="insight-strip__item admin-ui-insight-strip__item">
+          <span class="insight-strip__label admin-ui-insight-strip__label">当前成功率</span>
+          <strong>{{ summary.successRate || 0 }}%</strong>
+        </div>
+      </section>
+
+      <section class="section-anchor admin-ui-section-anchor">
+        <div>
+          <div class="section-anchor__eyebrow admin-ui-section-anchor__eyebrow">Overview</div>
+          <h3>核心指标</h3>
+        </div>
+        <p>用更少的颜色和更清晰的层级，快速理解当前周期的整体表现。</p>
+      </section>
+
+      <section class="kpi-grid">
+        <article
+          v-for="card in kpiCards"
+          :key="card.key"
+          class="kpi-card dashboard-card"
+          :class="[`kpi-card--${card.tone || 'default'}`]"
+        >
+          <div class="kpi-card__head">
+            <span class="kpi-card__label">{{ card.label }}</span>
+            <span class="kpi-card__icon">{{ card.icon }}</span>
+          </div>
+          <div class="kpi-card__value">{{ card.value }}</div>
+          <div class="kpi-card__meta">
+            <span class="kpi-card__trend" :class="[`is-${card.trendTone || 'neutral'}`]">
+              {{ card.trend }}
+            </span>
+            <span class="kpi-card__desc">{{ card.desc }}</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="insight-grid">
+        <article class="dashboard-card chart-card admin-ui-card admin-ui-panel">
+          <div class="section-head admin-ui-section-head">
             <div>
-              <h2>推送趋势</h2>
-              <p>查看总推送、成功和失败的变化趋势。</p>
+              <div class="section-kicker admin-ui-kicker">趋势</div>
+              <h3>推送趋势</h3>
+              <p>查看总推送、成功和失败在当前周期内的变化。</p>
             </div>
-            <el-segmented v-model="range" :options="rangeOptions" @change="handleRangeChange" />
+            <div class="section-head__side">
+              <div class="chart-legend-note">总推送 / 成功 / 失败</div>
+            </div>
           </div>
+
           <div v-if="trend.points.length" ref="chartRef" class="chart-canvas"></div>
-          <div v-else class="empty-block empty-block--chart">暂无趋势数据</div>
-        </section>
+          <div v-else class="empty-block empty-block--chart admin-ui-empty-block admin-ui-empty-block--chart">暂无趋势数据</div>
+        </article>
 
-        <section class="quick-actions-grid">
-          <div class="dashboard-card quick-card" @click="goTo('/push-create')">
-            <div class="quick-card-icon quick-card-icon--primary">✉</div>
+        <article class="dashboard-card summary-card admin-ui-card admin-ui-panel">
+          <div class="section-head section-head--compact admin-ui-section-head admin-ui-section-head--compact">
             <div>
-              <div class="quick-card-title">新建推送</div>
-              <div class="quick-card-desc">快速进入推送创建流程</div>
+              <div class="section-kicker admin-ui-kicker">摘要</div>
+              <h3>状态摘要</h3>
+              <p>快速浏览当前周期内最值得关注的信息。</p>
             </div>
           </div>
-          <div class="dashboard-card quick-card" @click="goTo('/push-records')">
-            <div class="quick-card-icon quick-card-icon--success">✓</div>
+
+          <div class="summary-block summary-block--highlight">
+            <span class="summary-block__label">当前状态</span>
+            <p class="summary-block__text">{{ statusSummaryText }}</p>
+          </div>
+
+          <div class="summary-block">
+            <span class="summary-block__label">异常摘要</span>
+            <ul class="summary-list">
+              <li>最近异常 {{ recentErrors.length }} 条</li>
+              <li>失败批次 {{ summary.failed || 0 }} 条，部分失败 {{ summary.partial || 0 }} 条</li>
+              <li>整体成功率 {{ summary.successRate || 0 }}%</li>
+            </ul>
+          </div>
+
+          <div class="summary-block">
+            <span class="summary-block__label">Top 失败原因</span>
+            <ol v-if="topErrorReasons.length" class="rank-list">
+              <li v-for="(reason, index) in topErrorReasons" :key="`${reason}-${index}`">{{ reason }}</li>
+            </ol>
+            <div v-else class="summary-empty">最近暂无高频失败原因</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="detail-grid">
+        <article class="dashboard-card detail-card admin-ui-card admin-ui-panel">
+          <div class="section-head section-head--compact admin-ui-section-head admin-ui-section-head--compact">
             <div>
-              <div class="quick-card-title">查看推送记录</div>
-              <div class="quick-card-desc">回看最近推送任务与结果</div>
+              <div class="section-kicker admin-ui-kicker">明细</div>
+              <h3>最近推送</h3>
+              <p>最近 10 条推送批次及发送结果。</p>
             </div>
-          </div>
-          <div class="dashboard-card quick-card" @click="goTo('/logs')">
-            <div class="quick-card-icon quick-card-icon--warning">!</div>
-            <div>
-              <div class="quick-card-title">查看日志</div>
-              <div class="quick-card-desc">进入日志中心查看完整异常与检索</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="detail-grid">
-          <div class="dashboard-card detail-card">
-            <div class="section-head section-head--compact">
-              <div>
-                <h2>最近推送结果</h2>
-                <p>最近 10 条推送任务状态</p>
-              </div>
-              <el-button text @click="goTo('/push-records')">查看推送记录</el-button>
-            </div>
-
-            <el-skeleton v-if="loading && !recentPushes.length" :rows="4" animated />
-
-            <div v-else-if="recentPushes.length" class="list-block">
-              <div
-                v-for="(item, index) in recentPushes"
-                :key="`${item.createdAt}-${index}`"
-                class="list-item list-item--push list-item--clickable"
-                @click="openBatchDetail(item)"
-              >
-                <div class="list-main">
-                  <div class="list-title-row">
-                    <div class="list-title">{{ item.title }}</div>
-                    <el-tag :type="pushTagType(item.status)" effect="light">{{ pushStatusText(item.status) }}</el-tag>
-                  </div>
-                  <div class="list-subtitle">{{ item.createdAt }}</div>
-                  <div class="push-metrics">
-                    <span>设备数 {{ item.totalDevices || 0 }}</span>
-                    <span>成功 {{ item.successCount || 0 }}</span>
-                    <span>失败 {{ item.failureCount || 0 }}</span>
-                  </div>
-                </div>
-                <div class="list-side">
-                  <div class="list-summary">{{ item.summary }}</div>
-                  <div class="list-code">Code {{ item.resultCode }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="empty-block">暂无推送记录</div>
+            <el-button text @click="goTo('/push-records')">查看全部</el-button>
           </div>
 
-          <div class="dashboard-card detail-card">
-            <div class="section-head section-head--compact">
-              <div>
-                <h2>最近异常日志</h2>
-                <p>仅展示 error / warn 摘要</p>
-              </div>
-              <el-button text @click="goTo('/logs')">查看全部日志</el-button>
-            </div>
+          <el-skeleton v-if="loading && !recentPushes.length" :rows="4" animated />
 
-            <el-skeleton v-if="loading && !recentErrors.length" :rows="4" animated />
-
-            <div v-else-if="recentErrors.length" class="list-block">
-              <div v-for="(item, index) in recentErrors" :key="`${item.time}-${index}`" class="list-item list-item--log">
-                <div class="list-main">
-                  <div class="list-title-row">
-                    <el-tag :type="item.level === 'ERROR' ? 'danger' : 'warning'" effect="light">{{ item.level }}</el-tag>
-                    <div class="list-time-inline">{{ item.time }}</div>
-                  </div>
-                  <div class="list-log-message">{{ item.message }}</div>
+          <div v-else-if="recentPushes.length" class="list-block">
+            <div
+              v-for="(item, index) in recentPushes"
+              :key="`${item.createdAt}-${index}`"
+              class="list-row list-row--clickable"
+              @click="openBatchDetail(item)"
+            >
+              <div class="list-row__main">
+                <div class="list-row__title">{{ item.title }}</div>
+                <div class="list-row__sub">{{ item.createdAt }}</div>
+                <div class="metric-inline">
+                  <span>设备 {{ item.totalDevices || 0 }}</span>
+                  <span>成功 {{ item.successCount || 0 }}</span>
+                  <span>失败 {{ item.failureCount || 0 }}</span>
                 </div>
               </div>
+              <div class="list-row__side">
+                <el-tag :type="pushTagType(item.status)" effect="light" round>
+                  {{ pushStatusText(item.status) }}
+                </el-tag>
+                <div class="list-row__summary">{{ item.summary }}</div>
+                <div class="list-row__code">Code {{ item.resultCode }}</div>
+              </div>
             </div>
-
-            <div v-else class="empty-block">最近暂无异常</div>
           </div>
-        </section>
+
+          <div v-else class="empty-block admin-ui-empty-block">暂无推送记录</div>
+        </article>
+
+        <article class="dashboard-card detail-card admin-ui-card admin-ui-panel">
+          <div class="section-head section-head--compact admin-ui-section-head admin-ui-section-head--compact">
+            <div>
+              <div class="section-kicker admin-ui-kicker">异常</div>
+              <h3>最近异常</h3>
+              <p>仅保留 error / warn 的摘要信息。</p>
+            </div>
+            <el-button text @click="goTo('/logs')">查看全部</el-button>
+          </div>
+
+          <el-skeleton v-if="loading && !recentErrors.length" :rows="4" animated />
+
+          <div v-else-if="recentErrors.length" class="list-block">
+            <div v-for="(item, index) in recentErrors" :key="`${item.time}-${index}`" class="list-row">
+              <div class="list-row__main">
+                <div class="list-row__topline">
+                  <el-tag :type="item.level === 'ERROR' ? 'danger' : 'warning'" effect="light" round>
+                    {{ item.level }}
+                  </el-tag>
+                  <span class="list-row__time">{{ item.time }}</span>
+                </div>
+                <div class="list-row__title list-row__title--log">{{ item.message }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="empty-block admin-ui-empty-block">最近暂无异常</div>
+        </article>
+      </section>
+    </div>
   </AdminPageLayout>
 </template>
 
@@ -162,9 +227,9 @@ const router = useRouter()
 const loading = ref(false)
 const range = ref('7d')
 const rangeOptions = [
+  { label: '24小时', value: '24h' },
   { label: '7天', value: '7d' },
-  { label: '30天', value: '30d' },
-  { label: '24小时', value: '24h' }
+  { label: '30天', value: '30d' }
 ]
 const lastRefreshText = ref('--')
 const errorMessage = ref('')
@@ -177,6 +242,95 @@ let chartInstance = null
 
 const pageTitle = computed(() => route.meta?.title || 'Dashboard')
 const pageSubtitle = computed(() => route.meta?.subtitle || '推送数据看板')
+const rangeLabel = computed(() => rangeOptions.find((item) => item.value === range.value)?.label || range.value)
+
+const kpiCards = computed(() => {
+  const successRate = Number(summary.value.successRate || 0)
+  return [
+    {
+      key: 'total',
+      label: '推送批次',
+      value: summary.value.total || 0,
+      trend: rangeLabel.value,
+      trendTone: 'neutral',
+      desc: '当前统计周期',
+      icon: '◌',
+      tone: 'default'
+    },
+    {
+      key: 'success',
+      label: '成功数',
+      value: summary.value.success || 0,
+      trend: `${successRate}%`,
+      trendTone: 'success',
+      desc: '整体成功率',
+      icon: '↗',
+      tone: 'default'
+    },
+    {
+      key: 'partial',
+      label: '部分失败',
+      value: summary.value.partial || 0,
+      trend: (summary.value.partial || 0) > 0 ? '需关注' : '稳定',
+      trendTone: (summary.value.partial || 0) > 0 ? 'warning' : 'success',
+      desc: '存在部分投递异常',
+      icon: '△',
+      tone: 'default'
+    },
+    {
+      key: 'failed',
+      label: '失败数',
+      value: summary.value.failed || 0,
+      trend: (summary.value.failed || 0) > 0 ? '存在失败批次' : '表现稳定',
+      trendTone: (summary.value.failed || 0) > 0 ? 'danger' : 'success',
+      desc: '需要优先排查',
+      icon: '!',
+      tone: (summary.value.failed || 0) > 0 ? 'danger' : 'default'
+    }
+  ]
+})
+
+const statusSummaryText = computed(() => {
+  const successRate = Number(summary.value.successRate || 0)
+  const failed = Number(summary.value.failed || 0)
+  const partial = Number(summary.value.partial || 0)
+
+  if (failed === 0 && partial === 0) {
+    return `当前周期整体发送稳定，成功率保持在 ${successRate}% 左右。`
+  }
+
+  if (failed > 0) {
+    return `当前周期出现 ${failed} 条失败批次，建议优先查看最近异常与 provider 返回信息。`
+  }
+
+  return `当前周期存在 ${partial} 条部分失败批次，整体可用但仍建议关注波动来源。`
+})
+
+const statusSummaryHeadline = computed(() => {
+  const failed = Number(summary.value.failed || 0)
+  const partial = Number(summary.value.partial || 0)
+
+  if (failed > 0) return '存在失败批次，建议优先排查'
+  if (partial > 0) return '存在轻微波动，但整体可控'
+  return '整体发送稳定'
+})
+
+const topErrorReasons = computed(() => {
+  const source = Array.isArray(recentErrors.value) ? recentErrors.value : []
+  const counts = new Map()
+
+  source.forEach((item) => {
+    const text = String(item?.message || '').trim()
+    if (!text) return
+    const normalized = text.length > 48 ? `${text.slice(0, 48)}...` : text
+    counts.set(normalized, (counts.get(normalized) || 0) + 1)
+  })
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([text]) => text)
+})
 
 function formatNow() {
   return new Date().toLocaleString('zh-CN', { hour12: false })
@@ -217,22 +371,31 @@ function renderChart() {
 
   instance.setOption({
     backgroundColor: 'transparent',
-    color: ['#3b82f6', '#22c55e', '#ef4444'],
+    color: ['#4f46e5', '#3b82f6', '#dc2626'],
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
+      backgroundColor: '#ffffff',
+      borderColor: '#e8edf3',
+      borderWidth: 1,
+      textStyle: {
+        color: '#1f2937'
+      },
+      extraCssText: 'box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10); border-radius: 12px;'
     },
     legend: {
       top: 0,
       right: 0,
+      itemWidth: 10,
+      itemHeight: 10,
       textStyle: {
         color: '#6b7280'
       }
     },
     grid: {
-      left: 24,
-      right: 24,
-      top: 56,
-      bottom: 24,
+      left: 16,
+      right: 16,
+      top: 52,
+      bottom: 8,
       containLabel: true
     },
     xAxis: {
@@ -241,11 +404,14 @@ function renderChart() {
       data: labels,
       axisLine: {
         lineStyle: {
-          color: '#d7dfeb'
+          color: '#dbe4ef'
         }
       },
+      axisTick: {
+        show: false
+      },
       axisLabel: {
-        color: '#6b7280'
+        color: '#94a3b8'
       }
     },
     yAxis: {
@@ -256,32 +422,41 @@ function renderChart() {
         }
       },
       axisLabel: {
-        color: '#6b7280'
+        color: '#94a3b8'
       }
     },
     series: [
       {
-        name: '总推送数',
+        name: '总推送',
         type: 'line',
         smooth: true,
-        symbolSize: 7,
-        data: totalData,
+        showSymbol: false,
+        lineStyle: {
+          width: 3
+        },
         areaStyle: {
-          color: 'rgba(59, 130, 246, 0.08)'
-        }
+          color: 'rgba(79, 70, 229, 0.08)'
+        },
+        data: totalData
       },
       {
-        name: '成功数',
+        name: '成功',
         type: 'line',
         smooth: true,
-        symbolSize: 7,
+        showSymbol: false,
+        lineStyle: {
+          width: 2
+        },
         data: successData
       },
       {
-        name: '失败数',
+        name: '失败',
         type: 'line',
         smooth: true,
-        symbolSize: 7,
+        showSymbol: false,
+        lineStyle: {
+          width: 2
+        },
         data: failedData
       }
     ]
@@ -349,233 +524,355 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.dashboard-shell {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  min-height: 100vh;
-}
-
-.sidebar {
-  background: #ffffff;
-  border-right: 1px solid var(--border-color);
-  padding: 20px 16px;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 8px 20px;
-}
-
-.brand-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
-.brand-title {
-  font-weight: 700;
-}
-
-.brand-subtitle {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.sidebar-menu {
-  border-right: none;
-}
-
-.main-panel {
+.dashboard-page {
   display: flex;
   flex-direction: column;
-}
-
-.topbar {
-  height: 72px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.topbar h1 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.topbar p {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.refresh-time {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.content-area {
-  padding: 24px;
+  gap: 20px;
 }
 
 .dashboard-alert {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .dashboard-card {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), #ffffff);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.dashboard-hero {
+  padding: 28px 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dashboard-hero__main {
+  max-width: 760px;
+}
+
+.eyebrow,
+.section-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.dashboard-hero h2 {
+  margin: 10px 0 12px;
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.dashboard-hero p {
+  margin: 0;
+  max-width: 680px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.dashboard-hero__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.hero-note,
+.refresh-time {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.hero-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.hero-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e8edf3;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.hero-status-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.hero-status-pill__dot--success {
+  background: #16a34a;
+}
+
+.hero-status-pill__dot--primary {
+  background: #4f46e5;
+}
+
+.env-tag {
+  margin-right: 4px;
+}
+
+.insight-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.insight-strip__item {
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid #e8edf3;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.insight-strip__label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+
+.insight-strip__item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.section-anchor {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.section-anchor__eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.section-anchor h3 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.section-anchor p {
+  margin: 0;
+  max-width: 540px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.75;
+  text-align: right;
 }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
 }
 
 .kpi-card {
-  padding: 20px;
+  padding: 22px;
 }
 
-.kpi-card--success {
-  background: #f0fdf4;
-}
-
-.kpi-card--warning {
-  background: #fffbeb;
-}
-
-.kpi-card--danger {
-  background: #fef2f2;
-}
-
-.kpi-label {
-  display: block;
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin-bottom: 14px;
-}
-
-.kpi-value {
-  font-size: 34px;
-  line-height: 1;
-}
-
-.chart-card,
-.detail-card,
-.quick-card {
-  padding: 24px;
-}
-
-.chart-card {
-  margin-bottom: 24px;
-}
-
-.quick-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.quick-card {
+.kpi-card__head {
   display: flex;
   align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.quick-card:hover {
-  transform: translateY(-2px);
+.kpi-card__label {
+  font-size: 13px;
+  color: #64748b;
 }
 
-.quick-card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
+.kpi-card__icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.kpi-card__value {
+  font-size: 34px;
+  line-height: 1;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
 }
 
-.quick-card-icon--primary {
-  background: #dbeafe;
-  color: #2563eb;
+.kpi-card__meta {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.quick-card-icon--success {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.quick-card-icon--warning {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.quick-card-title {
+.kpi-card__trend {
+  font-size: 13px;
   font-weight: 600;
 }
 
-.quick-card-desc {
-  margin-top: 6px;
-  color: var(--text-secondary);
+.kpi-card__trend.is-success {
+  color: #15803d;
+}
+
+.kpi-card__trend.is-warning {
+  color: #b45309;
+}
+
+.kpi-card__trend.is-danger {
+  color: #b42318;
+}
+
+.kpi-card__trend.is-neutral {
+  color: #475569;
+}
+
+.kpi-card__desc {
   font-size: 13px;
+  color: #94a3b8;
+}
+
+.kpi-card--danger {
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f7 100%);
+}
+
+.kpi-card--danger .kpi-card__value {
+  color: #b42318;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+  gap: 20px;
+}
+
+.chart-card,
+.summary-card,
+.detail-card {
+  padding: 24px;
 }
 
 .section-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   margin-bottom: 20px;
 }
 
 .section-head--compact {
-  align-items: flex-start;
+  margin-bottom: 18px;
 }
 
-.section-head h2 {
-  margin: 0;
-  font-size: 18px;
+.section-head h3 {
+  margin: 8px 0 0;
+  font-size: 20px;
+  color: #0f172a;
 }
 
 .section-head p {
   margin: 8px 0 0;
   color: var(--text-secondary);
   font-size: 14px;
+  line-height: 1.7;
+}
+
+.section-head__side,
+.chart-legend-note {
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 .chart-canvas {
-  height: 340px;
+  height: 360px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-block {
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid #eef2f7;
+}
+
+.summary-block:first-of-type {
+  margin-top: 0;
+}
+
+.summary-block--highlight {
+  padding: 18px;
+  margin-top: 0;
+  border-top: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f5f8ff 100%);
+}
+
+.summary-block__label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.summary-block__text,
+.summary-list,
+.rank-list,
+.summary-empty {
+  margin: 0;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.summary-list,
+.rank-list {
+  padding-left: 18px;
 }
 
 .detail-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
 }
 
 .list-block {
@@ -584,104 +881,155 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.list-item {
-  min-height: 88px;
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  background: #fafcff;
-  padding: 16px;
+.list-row {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.list-item--push {
   align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  background: #fbfdff;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.list-item--clickable {
+.list-row--clickable {
   cursor: pointer;
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
 }
 
-.list-item--clickable:hover {
+.list-row--clickable:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  border-color: #dbe4ef;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
 }
 
-.list-item--log {
-  min-height: 78px;
-}
-
-.list-main {
-  flex: 1;
+.list-row__main {
   min-width: 0;
+  flex: 1;
 }
 
-.list-side {
-  min-width: 148px;
+.list-row__topline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.list-row__title {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.list-row__title--log {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.list-row__sub,
+.list-row__time,
+.list-row__code,
+.list-row__summary,
+.metric-inline {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.list-row__sub {
+  margin-top: 6px;
+}
+
+.metric-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.list-row__side {
+  min-width: 152px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.list-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.list-title {
-  font-weight: 600;
-}
-
-.list-subtitle,
-.list-time-inline,
-.list-code {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.list-subtitle {
-  margin-top: 8px;
-}
-
-.push-metrics {
-  margin-top: 10px;
-  display: flex;
-  gap: 16px;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.list-summary {
+.list-row__summary {
   text-align: right;
-  color: var(--text-primary);
-  font-size: 13px;
-}
-
-.list-log-message {
-  margin-top: 10px;
-  color: var(--text-primary);
-  line-height: 1.55;
-  word-break: break-word;
+  color: #475569;
 }
 
 .empty-block {
   min-height: 220px;
-  border-radius: 12px;
+  border-radius: 16px;
   background: #f8fafc;
-  border: 1px dashed var(--border-color);
+  border: 1px dashed #dbe4ef;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: #94a3b8;
 }
 
 .empty-block--chart {
-  min-height: 340px;
+  min-height: 360px;
+}
+
+@media (max-width: 1280px) {
+  .insight-strip,
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .insight-grid,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-anchor {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-anchor p {
+    text-align: left;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-hero__actions {
+    align-items: flex-start;
+  }
+
+  .hero-status-pills {
+    justify-content: flex-start;
+  }
+
+  .insight-strip,
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .list-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .list-row__side {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .list-row__summary {
+    text-align: left;
+  }
 }
 </style>
