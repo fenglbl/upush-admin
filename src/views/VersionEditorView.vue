@@ -39,6 +39,18 @@
             <el-input-number v-model="form.versionCode" :min="1" :step="1" controls-position="right" />
           </el-form-item>
 
+          <el-form-item label="更新文件上传">
+            <div class="upload-row">
+              <input ref="fileInputRef" class="native-file-input" type="file" @change="handleFileChange" />
+              <el-button @click="triggerFilePick">选择文件</el-button>
+              <el-button :disabled="!selectedFile || uploading" :loading="uploading" type="primary" @click="submitUpload">上传文件</el-button>
+              <span class="upload-file-name">{{ selectedFile?.name || '未选择文件' }}</span>
+            </div>
+            <div v-if="uploading || uploadProgress > 0" class="upload-progress-wrap">
+              <el-progress :percentage="uploadProgress" :status="uploadProgress >= 100 && !uploading ? 'success' : ''" />
+            </div>
+          </el-form-item>
+
           <el-form-item label="下载地址">
             <el-input v-model.trim="form.downloadUrl" placeholder="https://example.com/upush.apk" />
           </el-form-item>
@@ -81,7 +93,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getVersionDetail, saveVersion } from '../api'
+import { getVersionDetail, saveVersion, uploadPackage } from '../api'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 import AdminPageLayout from '../components/AdminPageLayout.vue'
 
@@ -89,7 +101,11 @@ const route = useRoute()
 const router = useRouter()
 const saving = ref(false)
 const loading = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 const errorMessage = ref('')
+const fileInputRef = ref(null)
+const selectedFile = ref(null)
 
 const form = reactive({
   id: '',
@@ -145,6 +161,44 @@ async function confirmLeave() {
     return true
   } catch {
     return false
+  }
+}
+
+function triggerFilePick() {
+  fileInputRef.value?.click()
+}
+
+function handleFileChange(event) {
+  const file = event?.target?.files?.[0] || null
+  selectedFile.value = file
+  uploadProgress.value = 0
+}
+
+async function submitUpload() {
+  if (!selectedFile.value) {
+    ElMessage.warning('请先选择文件')
+    return
+  }
+
+  uploadProgress.value = 0
+  uploading.value = true
+  try {
+    const res = await uploadPackage(selectedFile.value, (event) => {
+      const total = Number(event?.total || selectedFile.value?.size || 0)
+      const loaded = Number(event?.loaded || 0)
+      if (total > 0) {
+        uploadProgress.value = Math.min(100, Math.max(0, Math.round((loaded / total) * 100)))
+      }
+    })
+    const data = res?.data?.data || {}
+    form.downloadUrl = data.downloadUrl || ''
+    uploadProgress.value = 100
+    ElMessage.success(res?.data?.msg || '文件上传成功')
+  } catch (error) {
+    uploadProgress.value = 0
+    ElMessage.error(error?.response?.data?.msg || '文件上传失败')
+  } finally {
+    uploading.value = false
   }
 }
 
@@ -266,6 +320,28 @@ onBeforeUnmount(() => {
 
 .form-alert {
   margin-bottom: 16px;
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.native-file-input {
+  display: none;
+}
+
+.upload-file-name {
+  color: var(--text-secondary);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.upload-progress-wrap {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .preview-panel {
