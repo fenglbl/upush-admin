@@ -41,7 +41,7 @@
 
           <el-form-item label="更新文件上传">
             <div class="upload-row">
-              <input ref="fileInputRef" class="native-file-input" type="file" @change="handleFileChange" />
+              <input ref="fileInputRef" class="native-file-input" type="file" :accept="ACCEPTED_PACKAGE_EXTENSIONS.join(',')" @change="handleFileChange" />
               <el-button @click="triggerFilePick">选择文件</el-button>
               <el-button :disabled="!selectedFile || uploading" :loading="uploading" type="primary" @click="submitUpload">上传文件</el-button>
               <span class="upload-file-name">{{ selectedFile?.name || '未选择文件' }}</span>
@@ -53,6 +53,10 @@
 
           <el-form-item label="下载地址">
             <el-input v-model.trim="form.downloadUrl" placeholder="https://example.com/upush.apk" />
+            <div v-if="form.downloadUrl" class="download-link-row">
+              <a :href="form.downloadUrl" target="_blank" rel="noopener noreferrer" class="download-link">打开下载链接</a>
+              <span class="download-link-hint">上传成功后可直接点开验证</span>
+            </div>
           </el-form-item>
 
           <el-form-item label="更新策略">
@@ -91,6 +95,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+
+const ACCEPTED_PACKAGE_EXTENSIONS = ['.apk', '.ipa', '.zip', '.exe', '.msi', '.dmg', '.AppImage', '.wgt']
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getVersionDetail, saveVersion, uploadPackage } from '../api'
@@ -170,8 +176,26 @@ function triggerFilePick() {
 
 function handleFileChange(event) {
   const file = event?.target?.files?.[0] || null
-  selectedFile.value = file
   uploadProgress.value = 0
+
+  if (!file) {
+    selectedFile.value = null
+    return
+  }
+
+  const lowerName = String(file.name || '').toLowerCase()
+  const isAllowed = ACCEPTED_PACKAGE_EXTENSIONS.some((ext) => lowerName.endsWith(ext.toLowerCase()))
+
+  if (!isAllowed) {
+    selectedFile.value = null
+    if (fileInputRef.value) {
+      fileInputRef.value.value = ''
+    }
+    ElMessage.warning('仅支持 apk、ipa、zip、exe、msi、dmg、AppImage、wgt 文件')
+    return
+  }
+
+  selectedFile.value = file
 }
 
 async function submitUpload() {
@@ -342,6 +366,29 @@ onBeforeUnmount(() => {
 .upload-progress-wrap {
   width: 100%;
   margin-top: 12px;
+}
+
+.download-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.download-link {
+  color: var(--el-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.download-link:hover {
+  text-decoration: underline;
+}
+
+.download-link-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
 }
 
 .preview-panel {
